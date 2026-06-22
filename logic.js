@@ -21,7 +21,7 @@ function standings(d, g) {
     const [la, lb] = PAIRS[mi];
     const ra = rows.find(r => r.li === la), rb = rows.find(r => r.li === lb);
     ra.pld++; rb.pld++; ra.sf += a; ra.sa += b; rb.sf += b; rb.sa += a;
-    if (a > b) ra.pts += 2; else if (b > a) rb.pts += 2; else { ra.pts++; rb.pts++; }
+    if (a > b) ra.pts += 1; else if (b > a) rb.pts += 1; // no draws — every match has a winner
   });
   rows.forEach(r => r.diff = r.sf - r.sa);
   // Rank by points, then by total points scored.
