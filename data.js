@@ -21,8 +21,8 @@ window.TOURNAMENT = {
     C: [{ a: "", b: "" }, { a: "", b: "" }, { a: "", b: "" }]
   },
   playoff: {
-    q1: { a: "", b: "" },     // Seed 1 v Seed 2
-    q2: { a: "", b: "" },     // Loser of Q1 v Seed 3
-    final: { a: "", b: "" }   // Winner Q1 v Winner Q2
+    q1: { a: "", b: "" },     // Q1: Seed 1 v Seed 2
+    q2: { a: "", b: "" },     // Q2: Loser of Q1 v Seed 3
+    final: { a: "", b: "" }   // Q3 (Final): Winner of Q1 v Winner of Q2
   }
 };

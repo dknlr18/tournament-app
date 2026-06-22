@@ -9,22 +9,28 @@
 <body>
 <header>
   <h1>🏆 9-Player Tournament</h1>
-  <p>3 groups of 3 · round-robin · IPL-style playoffs (Q1 → Q2 → Final)</p>
+  <p>3 groups of 3 · round-robin · then a 3-match playoff (Q1, Q2, Q3)</p>
 </header>
 <p class="note">📺 Live scoreboard (read-only). Results are updated by the organiser.</p>
 <main>
   <section class="section">
     <h2><span class="badge">1</span> Group Stage</h2>
     <div class="grid3" id="groups"></div>
+    <p class="hint">Ranked by <b>points</b> (Win = 2, Tie = 1, Loss = 0), then by <b>total points scored (PF)</b>. The top of each group qualifies.</p>
   </section>
 
   <section class="section">
-    <h2><span class="badge">2</span> Seeding <span class="pending" id="seedStatus"></span></h2>
+    <h2><span class="badge">2</span> Playoffs <span class="pending" id="seedStatus"></span></h2>
+    <div class="explainer">
+      <p>The 3 group winners are seeded 1–3 (by points, then total points scored) and play three matches:</p>
+      <ul>
+        <li><b>Q1</b> — Seed 1 v Seed 2. The winner goes straight to <b>Q3</b>; the loser drops into Q2 for a second chance.</li>
+        <li><b>Q2</b> — Loser of Q1 v Seed 3. The winner advances to <b>Q3</b>; the loser is eliminated.</li>
+        <li><b>Q3 (Final)</b> — Winner of Q1 v Winner of Q2. The winner is the champion.</li>
+      </ul>
+      <p class="hint">So the top two seeds get a second chance — one loss doesn't knock them out. Seed 3 must win twice.</p>
+    </div>
     <div id="seeds"></div>
-  </section>
-
-  <section class="section">
-    <h2><span class="badge">3</span> Playoffs</h2>
     <div class="playoffs" id="playoffs"></div>
     <div class="champion" id="champion"></div>
   </section>

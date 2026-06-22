@@ -44,6 +44,11 @@ button.ghost { background: transparent; border: 1px solid var(--line); color: va
 .toolbar { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 4px 0 24px; }
 .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
 .note { text-align: center; color: var(--muted); font-size: 12px; margin: -4px 0 16px; }
+.explainer { background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
+.explainer p { margin: 0 0 8px; }
+.explainer ul { margin: 0 0 4px; padding-left: 20px; }
+.explainer li { margin-bottom: 5px; }
+.explainer b { color: var(--accent); }
 .adminbar { background: #14253f; border: 1px solid var(--accent); border-radius: 10px; padding: 12px 16px; margin-bottom: 18px; }
 .gate { max-width: 360px; margin: 60px auto; text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 28px; }
 .gate input { width: 100%; margin: 12px 0; }

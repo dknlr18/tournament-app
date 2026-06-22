@@ -1,8 +1,8 @@
 # 9-Player Tournament Tracker
 
 A static web app for a **9-player tournament**: three groups of three play a round-robin,
-the three group winners are seeded 1–3, and the title is decided with an **IPL-style
-playoff** (Qualifier 1 → Qualifier 2 → Final), so the top two seeds get a second chance.
+the three group winners are seeded 1–3, and the title is decided with a **3-match playoff
+(Q1 → Q2 → Q3)**, so the top two seeds get a second chance.
 
 ## The draw
 
@@ -17,12 +17,11 @@ Players were drawn at random (Python `random.shuffle`, then dealt into A/B/C):
 ## Format
 
 1. **Groups** — round-robin (3 matches each). Win = 2 pts, Tie = 1, Loss = 0.
-   Ranked by points, then score difference, then points scored.
-2. **Seeding** — the 3 group winners are seeded 1–3.
-3. **Playoffs**
-   - **Qualifier 1:** Seed 1 v Seed 2 — winner → Final, loser gets a second chance.
-   - **Qualifier 2:** Loser of Q1 v Seed 3 — loser is out.
-   - **Final:** Winner of Q1 v Winner of Q2.
+   Ranked by **points**, then by **total points scored** (PF).
+2. **Playoffs** — the 3 group winners are seeded 1–3 (by points, then points scored), then:
+   - **Q1:** Seed 1 v Seed 2 — winner goes to Q3, loser drops to Q2.
+   - **Q2:** Loser of Q1 v Seed 3 — loser is eliminated.
+   - **Q3 (Final):** Winner of Q1 v Winner of Q2 — wins the title.
 
 ## Files
 

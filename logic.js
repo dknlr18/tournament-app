@@ -24,7 +24,8 @@ function standings(d, g) {
     if (a > b) ra.pts += 2; else if (b > a) rb.pts += 2; else { ra.pts++; rb.pts++; }
   });
   rows.forEach(r => r.diff = r.sf - r.sa);
-  rows.sort((x, y) => y.pts - x.pts || y.diff - x.diff || y.sf - x.sf);
+  // Rank by points, then by total points scored.
+  rows.sort((x, y) => y.pts - x.pts || y.sf - x.sf);
   return rows;
 }
 function groupComplete(d, g) {
@@ -33,7 +34,8 @@ function groupComplete(d, g) {
 function seeds(d) {
   if (!GROUPS.every(g => groupComplete(d, g))) return null;
   const winners = GROUPS.map(g => ({ g, ...standings(d, g)[0] }));
-  winners.sort((x, y) => y.pts - x.pts || y.diff - x.diff || y.sf - x.sf);
+  // Seed by points, then by total points scored.
+  winners.sort((x, y) => y.pts - x.pts || y.sf - x.sf);
   return winners;
 }
 function matchWinner(m) {
@@ -89,10 +91,10 @@ function renderGroups(d, editable) {
     const rows = standings(d, g);
     const done = groupComplete(d, g);
     const table = `<table>
-      <tr><th class="name" style="text-align:left">Player</th><th>P</th><th>Pts</th><th>+/-</th></tr>
+      <tr><th class="name" style="text-align:left">Player</th><th title="Played">P</th><th title="Points">Pts</th><th title="Points scored (tiebreaker)">PF</th></tr>
       ${rows.map((r, i) => `<tr class="${i === 0 && done ? 'leader' : ''}">
         <td class="name">${escapeHtml(r.name)}${i === 0 && done ? ' 🥇' : ''}</td>
-        <td>${r.pld}</td><td>${r.pts}</td><td>${r.diff > 0 ? '+' : ''}${r.diff}</td></tr>`).join("")}
+        <td>${r.pld}</td><td>${r.pts}</td><td>${r.sf}</td></tr>`).join("")}
     </table>`;
     return `<div class="group"><h3>Group ${g}</h3>${matches}${table}</div>`;
   }).join("");
@@ -133,9 +135,9 @@ function renderPlayoffs(d, editable) {
   const champion = finw === "a" ? q1Winner : finw === "b" ? q2Winner : null;
 
   el.innerHTML = `
-    ${poCard(d, "q1", "Qualifier 1", "Winner → Final · Loser gets a 2nd chance", s1, s2, q1, editable)}
-    ${poCard(d, "q2", "Qualifier 2", "Q1 loser v Seed 3 · Loser is out", q1Loser, s3, q2, editable)}
-    ${poCard(d, "final", "Final", "Q1 winner v Q2 winner", q1Winner, q2Winner, fin, editable, true)}`;
+    ${poCard(d, "q1", "Q1", "Seed 1 v Seed 2 · winner → Q3, loser drops to Q2", s1, s2, q1, editable)}
+    ${poCard(d, "q2", "Q2", "Loser of Q1 v Seed 3 · loser is eliminated", q1Loser, s3, q2, editable)}
+    ${poCard(d, "final", "Q3 (Final)", "Winner of Q1 v Winner of Q2 · wins the title", q1Winner, q2Winner, fin, editable, true)}`;
   champEl.textContent = champion ? `🏆 Champion: ${champion.name}` : "";
 }
 
