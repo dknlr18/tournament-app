@@ -46,15 +46,16 @@ function standings(d, g) {
     if (r.complete) { ra.pld++; rb.pld++; if (r.winner === "a") ra.pts++; else rb.pts++; }
   });
   rows.forEach(r => r.diff = r.sf - r.sa);
-  // Rank by match points, then by total points scored.
-  rows.sort((x, y) => y.pts - x.pts || y.sf - x.sf);
+  // Rank by match points, then most points scored (PF), then fewest conceded (PA).
+  rows.sort((x, y) => y.pts - x.pts || y.sf - x.sf || x.sa - y.sa);
   return rows;
 }
 function groupComplete(d, g) { return d.group[g].every(m => matchResult(m).complete); }
 function seeds(d) {
   if (!GROUPS.every(g => groupComplete(d, g))) return null;
   const winners = GROUPS.map(g => ({ g, ...standings(d, g)[0] }));
-  winners.sort((x, y) => y.pts - x.pts || y.sf - x.sf);
+  // Seed by points, then most points scored (PF), then fewest conceded (PA).
+  winners.sort((x, y) => y.pts - x.pts || y.sf - x.sf || x.sa - y.sa);
   return winners;
 }
 
@@ -130,10 +131,12 @@ function renderTables(d) {
       <h3>Group ${g}</h3>
       <table>
         <tr><th class="name">Player</th><th title="Matches played">P</th>
-            <th title="Matches won = points">Pts</th><th title="Total points scored (tiebreaker)">PF</th></tr>
+            <th title="Matches won = points">Pts</th>
+            <th title="Points scored — 1st tiebreaker">PF</th>
+            <th title="Points conceded — 2nd tiebreaker (fewer is better)">PA</th></tr>
         ${rows.map((r, i) => `<tr class="${i === 0 && done ? 'leader' : ''}">
           <td class="name">${i === 0 && done ? '🥇 ' : ''}${escapeHtml(r.name)}</td>
-          <td>${r.pld}</td><td><b>${r.pts}</b></td><td>${r.sf}</td></tr>`).join("")}
+          <td>${r.pld}</td><td><b>${r.pts}</b></td><td>${r.sf}</td><td>${r.sa}</td></tr>`).join("")}
       </table>
     </div>`;
   }).join("");
