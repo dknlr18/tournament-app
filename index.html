@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>9-Team Tournament — Groups + IPL Playoffs</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --card: #1a2233;
+    --card2: #222c42;
+    --line: #2e3a55;
+    --txt: #e6ecf7;
+    --muted: #8b97b0;
+    --accent: #4f8cff;
+    --win: #2ecc71;
+    --gold: #ffcb45;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--bg); color: var(--txt); line-height: 1.4;
+  }
+  header {
+    padding: 24px 16px 8px; text-align: center;
+  }
+  header h1 { margin: 0 0 4px; font-size: 22px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  .section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 18px; }
+  .section h2 { margin: 0 0 12px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .badge { background: var(--accent); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 99px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 720px) { .grid3 { grid-template-columns: 1fr; } }
+  .group { background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .group h3 { margin: 0 0 10px; font-size: 14px; color: var(--accent); }
+  input[type=text] {
+    width: 100%; background: #0f1626; border: 1px solid var(--line); color: var(--txt);
+    border-radius: 7px; padding: 7px 9px; font-size: 13px; margin-bottom: 6px;
+  }
+  input[type=number] {
+    width: 52px; background: #0f1626; border: 1px solid var(--line); color: var(--txt);
+    border-radius: 7px; padding: 6px; font-size: 13px; text-align: center;
+  }
+  input:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  th, td { padding: 5px 6px; text-align: center; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; }
+  td.name { text-align: left; }
+  tr.leader td { color: var(--gold); font-weight: 700; }
+  .match { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; font-size: 13px; }
+  .match .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .match .t.right { text-align: right; }
+  .match .vs { color: var(--muted); font-size: 11px; }
+  .winnerTag { color: var(--win); font-weight: 700; }
+  .playoffs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 720px) { .playoffs { grid-template-columns: 1fr; } }
+  .po { background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .po h4 { margin: 0 0 4px; font-size: 13px; }
+  .po .desc { color: var(--muted); font-size: 11px; margin-bottom: 10px; }
+  .po.final { border-color: var(--gold); }
+  .champion { text-align: center; font-size: 20px; font-weight: 800; color: var(--gold); margin-top: 6px; }
+  .seedline { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--line); display: flex; gap: 8px; }
+  .seedline .s { color: var(--accent); font-weight: 700; width: 56px; }
+  .pending { color: var(--muted); font-style: italic; font-size: 13px; }
+  button {
+    background: var(--accent); color: #fff; border: none; border-radius: 7px;
+    padding: 8px 14px; font-size: 13px; cursor: pointer;
+  }
+  button.ghost { background: transparent; border: 1px solid var(--line); color: var(--muted); }
+  .toolbar { display: flex; gap: 10px; justify-content: center; margin: 4px 0 24px; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏆 9-Team Tournament Tracker</h1>
+  <p>3 groups of 3 · round-robin · IPL-style playoffs (Q1 → Q2 → Final)</p>
+</header>
+<main>
+  <section class="section">
+    <h2><span class="badge">1</span> Teams &amp; Groups</h2>
+    <div class="grid3" id="setup"></div>
+    <p class="hint">Enter names, then fill in match scores below. Everything saves automatically in your browser.</p>
+  </section>
+
+  <section class="section">
+    <h2><span class="badge">2</span> Group Stage</h2>
+    <div class="grid3" id="groups"></div>
+  </section>
+
+  <section class="section">
+    <h2><span class="badge">3</span> Seeding <span class="pending" id="seedStatus"></span></h2>
+    <div id="seeds"></div>
+  </section>
+
+  <section class="section">
+    <h2><span class="badge">4</span> Playoffs</h2>
+    <div class="playoffs" id="playoffs"></div>
+    <div class="champion" id="champion"></div>
+  </section>
+
+  <div class="toolbar">
+    <button class="ghost" id="resetBtn">Reset everything</button>
+  </div>
+</main>
+
+<script>
+const GROUPS = ["A", "B", "C"];
+// 3 round-robin matches per group of 3 teams (indices within the group)
+const PAIRS = [[0, 1], [0, 2], [1, 2]];
+const KEY = "tournament9-v1";
+
+const blank = () => ({
+  teams: Array(9).fill(""),
+  group: { A: PAIRS.map(() => ({ a: "", b: "" })),
+           B: PAIRS.map(() => ({ a: "", b: "" })),
+           C: PAIRS.map(() => ({ a: "", b: "" })) },
+  playoff: { q1: { a: "", b: "" }, q2: { a: "", b: "" }, final: { a: "", b: "" } },
+});
+
+let state = load();
+
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.teams && s.teams.length === 9) return s;
+  } catch (e) {}
+  return blank();
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+// group g -> array of 3 global team indices
+function groupTeamIndex(g, localIdx) {
+  return GROUPS.indexOf(g) * 3 + localIdx;
+}
+function teamName(globalIdx) {
+  return state.teams[globalIdx] || `Team ${globalIdx + 1}`;
+}
+function num(v) { return v === "" || v === null ? null : Number(v); }
+
+// Compute standings for one group. Returns rows sorted best-first.
+function standings(g) {
+  const rows = [0, 1, 2].map(li => ({
+    li, gi: groupTeamIndex(g, li), name: teamName(groupTeamIndex(g, li)),
+    pld: 0, pts: 0, sf: 0, sa: 0,
+  }));
+  state.group[g].forEach((m, mi) => {
+    const a = num(m.a), b = num(m.b);
+    if (a === null || b === null) return;
+    const [la, lb] = PAIRS[mi];
+    const ra = rows.find(r => r.li === la), rb = rows.find(r => r.li === lb);
+    ra.pld++; rb.pld++; ra.sf += a; ra.sa += b; rb.sf += b; rb.sa += a;
+    if (a > b) ra.pts += 2; else if (b > a) rb.pts += 2; else { ra.pts++; rb.pts++; }
+  });
+  rows.forEach(r => r.diff = r.sf - r.sa);
+  rows.sort((x, y) => y.pts - x.pts || y.diff - x.diff || y.sf - x.sf);
+  return rows;
+}
+
+function groupComplete(g) {
+  return state.group[g].every(m => num(m.a) !== null && num(m.b) !== null);
+}
+
+// The seeded group winners (only when all groups complete). Seeds 1..3 best-first.
+function seeds() {
+  if (!GROUPS.every(groupComplete)) return null;
+  const winners = GROUPS.map(g => {
+    const top = standings(g)[0];
+    return { g, ...top };
+  });
+  winners.sort((x, y) => y.pts - x.pts || y.diff - x.diff || y.sf - x.sf);
+  return winners; // [seed1, seed2, seed3]
+}
+
+// winner of a match object given two team objects {gi,name}; null if no result/tie
+function matchWinner(m) {
+  const a = num(m.a), b = num(m.b);
+  if (a === null || b === null || a === b) return null;
+  return a > b ? "a" : "b";
+}
+
+function render() {
+  renderSetup();
+  renderGroups();
+  renderSeeds();
+  renderPlayoffs();
+  save();
+}
+
+function renderSetup() {
+  const el = document.getElementById("setup");
+  el.innerHTML = GROUPS.map(g => `
+    <div class="group">
+      <h3>Group ${g}</h3>
+      ${[0, 1, 2].map(li => {
+        const gi = groupTeamIndex(g, li);
+        return `<input type="text" data-team="${gi}" placeholder="Team ${gi + 1} name" value="${escapeHtml(state.teams[gi])}" />`;
+      }).join("")}
+    </div>`).join("");
+  el.querySelectorAll("input[data-team]").forEach(inp => {
+    inp.addEventListener("input", e => {
+      state.teams[+e.target.dataset.team] = e.target.value;
+      // re-render dependent views but keep focus on this input
+      renderGroups(); renderSeeds(); renderPlayoffs(); save();
+    });
+  });
+}
+
+function renderGroups() {
+  const el = document.getElementById("groups");
+  el.innerHTML = GROUPS.map(g => {
+    const rows = standings(g);
+    const matches = PAIRS.map((p, mi) => {
+      const m = state.group[g][mi];
+      const w = matchWinner(m);
+      const an = teamName(groupTeamIndex(g, p[0]));
+      const bn = teamName(groupTeamIndex(g, p[1]));
+      return `<div class="match">
+        <span class="t ${w === 'a' ? 'winnerTag' : ''}">${escapeHtml(an)}</span>
+        <input type="number" min="0" data-g="${g}" data-m="${mi}" data-s="a" value="${m.a}" />
+        <span class="vs">v</span>
+        <input type="number" min="0" data-g="${g}" data-m="${mi}" data-s="b" value="${m.b}" />
+        <span class="t right ${w === 'b' ? 'winnerTag' : ''}">${escapeHtml(bn)}</span>
+      </div>`;
+    }).join("");
+    const table = `<table>
+      <tr><th class="name" style="text-align:left">Team</th><th>P</th><th>Pts</th><th>+/-</th></tr>
+      ${rows.map((r, i) => `<tr class="${i === 0 && groupComplete(g) ? 'leader' : ''}">
+        <td class="name">${escapeHtml(r.name)}${i === 0 && groupComplete(g) ? ' 🥇' : ''}</td>
+        <td>${r.pld}</td><td>${r.pts}</td><td>${r.diff > 0 ? '+' : ''}${r.diff}</td></tr>`).join("")}
+    </table>`;
+    return `<div class="group"><h3>Group ${g}</h3>${matches}${table}</div>`;
+  }).join("");
+  el.querySelectorAll("input[type=number]").forEach(inp => {
+    inp.addEventListener("input", e => {
+      const { g, m, s } = e.target.dataset;
+      state.group[g][+m][s] = e.target.value;
+      renderGroups(); renderSeeds(); renderPlayoffs(); save();
+      refocus(e.target);
+    });
+  });
+}
+
+function renderSeeds() {
+  const el = document.getElementById("seeds");
+  const status = document.getElementById("seedStatus");
+  const sd = seeds();
+  if (!sd) {
+    status.textContent = "— complete all 9 group matches to lock seeds";
+    el.innerHTML = `<p class="pending">Group winners will be seeded here once every group match has a score.</p>`;
+    return;
+  }
+  status.textContent = "";
+  el.innerHTML = sd.map((w, i) => `
+    <div class="seedline"><span class="s">Seed ${i + 1}</span>
+      <span>${escapeHtml(w.name)} <span style="color:var(--muted)">(Group ${w.g} winner · ${w.pts} pts)</span></span>
+    </div>`).join("");
+}
+
+function renderPlayoffs() {
+  const el = document.getElementById("playoffs");
+  const champEl = document.getElementById("champion");
+  const sd = seeds();
+  if (!sd) {
+    el.innerHTML = `<p class="pending">Playoffs unlock once seeding is complete.</p>`;
+    champEl.textContent = "";
+    return;
+  }
+  const [s1, s2, s3] = sd;
+
+  // Qualifier 1: seed1 v seed2
+  const q1 = state.playoff.q1;
+  const q1w = matchWinner(q1); // 'a' = s1, 'b' = s2
+  const q1Winner = q1w === "a" ? s1 : q1w === "b" ? s2 : null;
+  const q1Loser = q1w === "a" ? s2 : q1w === "b" ? s1 : null;
+
+  // Qualifier 2: loser of Q1 v seed3
+  const q2 = state.playoff.q2;
+  const q2w = matchWinner(q2); // 'a' = q1Loser, 'b' = s3
+  const q2Winner = q2w === "a" ? q1Loser : q2w === "b" ? s3 : null;
+
+  // Final: Q1 winner v Q2 winner
+  const fin = state.playoff.final;
+  const finw = matchWinner(fin);
+  const champion = finw === "a" ? q1Winner : finw === "b" ? q2Winner : null;
+
+  el.innerHTML = `
+    ${poCard("q1", "Qualifier 1", "Winner → Final · Loser gets a 2nd chance", s1, s2, q1, q1w)}
+    ${poCard("q2", "Qualifier 2", "Q1 loser v Seed 3 · Loser is out", q1Loser, s3, q2, q2w, !q1Winner)}
+    ${poCard("final", "Final", "Q1 winner v Q2 winner", q1Winner, q2Winner, fin, finw, !(q1Winner && q2Winner), true)}
+  `;
+  champEl.textContent = champion ? `🏆 Champion: ${champion.name}` : "";
+
+  el.querySelectorAll("input[type=number]").forEach(inp => {
+    inp.addEventListener("input", e => {
+      const { p, s } = e.target.dataset;
+      state.playoff[p][s] = e.target.value;
+      renderPlayoffs(); save();
+      refocus(e.target);
+    });
+  });
+}
+
+function poCard(key, title, desc, teamA, teamB, m, w, locked, isFinal) {
+  const cls = "po" + (isFinal ? " final" : "");
+  if (locked || !teamA || !teamB) {
+    return `<div class="${cls}"><h4>${title}</h4><div class="desc">${desc}</div>
+      <p class="pending">Waiting for previous results…</p></div>`;
+  }
+  return `<div class="${cls}">
+    <h4>${title}</h4><div class="desc">${desc}</div>
+    <div class="match">
+      <span class="t ${w === 'a' ? 'winnerTag' : ''}">${escapeHtml(teamA.name)}</span>
+      <input type="number" min="0" data-p="${key}" data-s="a" value="${m.a}" />
+      <span class="vs">v</span>
+      <input type="number" min="0" data-p="${key}" data-s="b" value="${m.b}" />
+      <span class="t right ${w === 'b' ? 'winnerTag' : ''}">${escapeHtml(teamB.name)}</span>
+    </div>
+  </div>`;
+}
+
+// keep caret in the just-edited input after re-render
+function refocus(prev) {
+  const sel = `input[type=number]${attrSel(prev)}`;
+  const next = document.querySelector(sel);
+  if (next) { next.focus(); next.setSelectionRange(next.value.length, next.value.length); }
+}
+function attrSel(el) {
+  return [...el.attributes].filter(a => a.name.startsWith("data-"))
+    .map(a => `[${a.name}="${a.value}"]`).join("");
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (confirm("Clear all teams and scores?")) { state = blank(); render(); }
+});
+
+render();
+</script>
+</body>
+</html>
