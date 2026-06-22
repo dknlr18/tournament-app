@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Admin — 9-Player Tournament</title>
+<title>Admin · 9-Player Tournament</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -17,40 +17,66 @@
   <button id="enter">Unlock</button>
 </div>
 
-<!-- ===== App (hidden until unlocked) ===== -->
+<!-- ===== App ===== -->
 <div id="app" style="display:none">
   <header>
     <h1>🛠️ Tournament Admin</h1>
-    <p>Edit scores, then export <code>data.js</code> and push it to update the public site.</p>
+    <p class="sub">Edit best-of-3 scores, then publish <code>data.js</code> to update the public site.</p>
   </header>
-  <main>
-    <div class="adminbar">
-      <strong>Workflow:</strong> edit scores below → <em>Generate data.js</em> → <em>Download</em> (or Copy)
-      → replace <code>data.js</code> in the repo &amp; commit. Your in-progress edits are auto-saved in this browser.
-    </div>
 
-    <section class="section">
-      <h2><span class="badge">1</span> Group Stage</h2>
-      <div class="grid3" id="groups"></div>
-      <p class="hint">Ranked by <b>points</b> (Win = 1, Loss = 0 — no draws), then by <b>total points scored (PF)</b>.</p>
-    </section>
-    <section class="section">
-      <h2><span class="badge">2</span> Playoffs <span class="pending" id="seedStatus"></span></h2>
-      <div class="explainer">
-        <p>The 3 group winners are seeded 1–3 (by points, then total points scored) and play three matches:</p>
-        <ul>
-          <li><b>Q1</b> — Seed 1 v Seed 2. Winner → <b>Q3</b>; loser drops to Q2.</li>
-          <li><b>Q2</b> — Loser of Q1 v Seed 3. Winner → <b>Q3</b>; loser is eliminated.</li>
-          <li><b>Q3 (Final)</b> — Winner of Q1 v Winner of Q2. Winner is champion.</li>
-        </ul>
-      </div>
-      <div id="seeds"></div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="schedule">📅 Schedule</button>
+    <button class="tab" data-tab="table">📊 Points Table</button>
+    <button class="tab" data-tab="rules">📖 Rules</button>
+    <button class="tab" data-tab="publish">🚀 Publish</button>
+  </nav>
+
+  <main>
+    <!-- Schedule (editable) -->
+    <div class="panel" id="panel-schedule">
+      <p class="note">Enter each game's points. Match winner = first to 2 games. Edits auto-save in this browser.</p>
+      <h2 class="ph">Group Matches</h2>
+      <div class="grid3" id="groupsMatches"></div>
+      <h2 class="ph">Playoffs</h2>
       <div class="playoffs" id="playoffs"></div>
       <div class="champion" id="champion"></div>
-    </section>
+    </div>
 
-    <section class="section">
-      <h2><span class="badge">3</span> Publish</h2>
+    <!-- Points table -->
+    <div class="panel" id="panel-table" hidden>
+      <h2 class="ph">Group Standings</h2>
+      <div class="grid3" id="tables"></div>
+      <h2 class="ph">Seeds <span class="pending" id="seedStatus"></span></h2>
+      <div id="seeds"></div>
+    </div>
+
+    <!-- Rules -->
+    <div class="panel" id="panel-rules" hidden>
+      <div class="rules">
+        <h2 class="ph">How the tournament works</h2>
+        <h3>Group stage</h3>
+        <ul>
+          <li>3 groups of 3, round-robin (3 matches per group).</li>
+          <li>Every match is <b>best of 3 games</b>; first to 2 games wins.</li>
+          <li>Games are played to a win (win by 2) — <b>no draws</b>. Match win = <b>1 point</b>.</li>
+          <li>Ranked by <b>points</b>, then <b>PF</b> (total points scored).</li>
+        </ul>
+        <h3>Playoffs</h3>
+        <ul>
+          <li><b>Q1</b> — Seed 1 v Seed 2. Winner → Q3; loser drops to Q2.</li>
+          <li><b>Q2</b> — Loser of Q1 v Seed 3. Loser is eliminated.</li>
+          <li><b>Q3 (Final)</b> — Winner of Q1 v Winner of Q2 → champion.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Publish -->
+    <div class="panel" id="panel-publish" hidden>
+      <div class="adminbar">
+        <strong>Publish workflow:</strong> edit scores → <em>Generate</em> → <em>Download</em> (or Copy)
+        → replace <code>data.js</code> in the repo &amp; commit. Only you can push, so only you can
+        change the official scoreboard.
+      </div>
       <div class="toolbar" style="justify-content:flex-start">
         <button id="gen">Generate data.js</button>
         <button id="download" class="ghost">⬇ Download data.js</button>
@@ -58,27 +84,25 @@
         <button id="loadOfficial" class="ghost">↺ Reset to published</button>
       </div>
       <textarea id="out" readonly placeholder="Click 'Generate data.js' to produce the file contents to commit…"></textarea>
-      <p class="hint">After downloading, replace <code>data.js</code> in your repo and commit/push. Only you can push, so only you can change the official scoreboard.</p>
-    </section>
+      <p class="hint">After downloading, replace <code>data.js</code> in your repo and commit/push
+         (terminal, or GitHub's web “upload files”).</p>
+    </div>
   </main>
 </div>
 
 <script src="data.js"></script>
 <script src="logic.js"></script>
 <script>
-  // ===== Passcode (client-side only — convenience gate, NOT real security).
-  // Change this to your own passcode. The real protection is that only you can
-  // push data.js to the GitHub repo.
+  // Client-side passcode — convenience only. Real protection = repo push access.
   const ADMIN_PASS = "topspin2026";
+  const DRAFT_KEY = "tournament9-admin-draft-v2";
+  let data;
 
-  const DRAFT_KEY = "tournament9-admin-draft";
-  let data; // working copy
+  function freshMatch() { return { games: [{ a: "", b: "" }, { a: "", b: "" }, { a: "", b: "" }] }; }
+  function isValid(d) { return d && Array.isArray(d.players) && d.players.length === 9 && d.group && d.group.A[0] && d.group.A[0].games; }
 
   function loadDraft() {
-    try {
-      const d = JSON.parse(localStorage.getItem(DRAFT_KEY));
-      if (d && Array.isArray(d.players) && d.players.length === 9) return d;
-    } catch (e) {}
+    try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY)); if (isValid(d)) return d; } catch (e) {}
     return structuredClone(window.TOURNAMENT);
   }
   function saveDraft() { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); }
@@ -88,63 +112,45 @@
     for (let i = 0; i < path.length - 1; i++) o = o[path[i]];
     o[path[path.length - 1]] = value;
   }
-
   function rerender() {
-    renderTournament(data, {
-      editable: true,
-      onChange: (path, value) => { setPath(path, value); saveDraft(); rerender(); }
-    });
+    renderAll(data, { editable: true, onChange: (p, v) => { setPath(p, v); saveDraft(); rerender(); } });
   }
 
   function serialize() {
-    const p = JSON.stringify(data.players, null, 0).replace(/","/g, '", "');
-    const grp = JSON.stringify(data.group);
-    const po = JSON.stringify(data.playoff);
     return `// ===== Tournament source of truth =====\n` +
       `// Generated by admin.html. Replace data.js with this and commit to update the site.\n` +
-      `window.TOURNAMENT = {\n` +
-      `  players: ${p},\n` +
-      `  group: ${grp},\n` +
-      `  playoff: ${po}\n};\n`;
+      `// Every match is best of 3 games; each game = { a, b } point score.\n` +
+      `window.TOURNAMENT = ${JSON.stringify(data, null, 2)};\n`;
   }
 
   function unlock() {
     document.getElementById("gate").style.display = "none";
     document.getElementById("app").style.display = "block";
+    setupTabs();
     data = loadDraft();
     rerender();
   }
-
-  // gate handlers
   function tryEnter() {
     if (document.getElementById("pass").value === ADMIN_PASS) {
-      sessionStorage.setItem("tournament9-auth", "1");
-      unlock();
-    } else {
-      document.getElementById("err").textContent = "Wrong passcode.";
-    }
+      sessionStorage.setItem("tournament9-auth", "1"); unlock();
+    } else { document.getElementById("err").textContent = "Wrong passcode."; }
   }
   document.getElementById("enter").addEventListener("click", tryEnter);
   document.getElementById("pass").addEventListener("keydown", e => { if (e.key === "Enter") tryEnter(); });
   if (sessionStorage.getItem("tournament9-auth") === "1") unlock();
 
-  // publish handlers
-  document.getElementById("gen").addEventListener("click", () => {
-    document.getElementById("out").value = serialize();
-  });
+  document.getElementById("gen").addEventListener("click", () => { document.getElementById("out").value = serialize(); });
   document.getElementById("copy").addEventListener("click", async () => {
-    const txt = serialize();
-    document.getElementById("out").value = txt;
+    const txt = serialize(); document.getElementById("out").value = txt;
     try { await navigator.clipboard.writeText(txt); alert("Copied data.js contents."); } catch (e) {}
   });
   document.getElementById("download").addEventListener("click", () => {
     const blob = new Blob([serialize()], { type: "text/javascript" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = "data.js"; a.click();
-    URL.revokeObjectURL(a.href);
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = "data.js"; a.click(); URL.revokeObjectURL(a.href);
   });
   document.getElementById("loadOfficial").addEventListener("click", () => {
-    if (confirm("Discard your local edits and reload the published results?")) {
+    if (confirm("Discard local edits and reload the published results?")) {
       data = structuredClone(window.TOURNAMENT); saveDraft(); rerender();
       document.getElementById("out").value = "";
     }

@@ -3,43 +3,90 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>9-Player Tournament — Live Scoreboard</title>
+<title>9-Player Tournament</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <header>
   <h1>🏆 9-Player Tournament</h1>
-  <p>3 groups of 3 · round-robin · then a 3-match playoff (Q1, Q2, Q3)</p>
+  <p class="sub">3 groups of 3 · best-of-3 matches · 3-match playoff (Q1 · Q2 · Q3)</p>
 </header>
-<p class="note">📺 Live scoreboard (read-only). Results are updated by the organiser.</p>
-<main>
-  <section class="section">
-    <h2><span class="badge">1</span> Group Stage</h2>
-    <div class="grid3" id="groups"></div>
-    <p class="hint">Ranked by <b>points</b> (Win = 1, Loss = 0 — no draws), then by <b>total points scored (PF)</b>. The top of each group qualifies.</p>
-  </section>
 
-  <section class="section">
-    <h2><span class="badge">2</span> Playoffs <span class="pending" id="seedStatus"></span></h2>
-    <div class="explainer">
-      <p>The 3 group winners are seeded 1–3 (by points, then total points scored) and play three matches:</p>
-      <ul>
-        <li><b>Q1</b> — Seed 1 v Seed 2. The winner goes straight to <b>Q3</b>; the loser drops into Q2 for a second chance.</li>
-        <li><b>Q2</b> — Loser of Q1 v Seed 3. The winner advances to <b>Q3</b>; the loser is eliminated.</li>
-        <li><b>Q3 (Final)</b> — Winner of Q1 v Winner of Q2. The winner is the champion.</li>
-      </ul>
-      <p class="hint">So the top two seeds get a second chance — one loss doesn't knock them out. Seed 3 must win twice.</p>
-    </div>
-    <div id="seeds"></div>
+<nav class="tabs">
+  <button class="tab active" data-tab="schedule">📅 Schedule</button>
+  <button class="tab" data-tab="table">📊 Points Table</button>
+  <button class="tab" data-tab="rules">📖 Rules</button>
+</nav>
+
+<main>
+  <!-- ===== Schedule ===== -->
+  <div class="panel" id="panel-schedule">
+    <p class="note">📺 Live scoreboard (read-only) · results updated by the organiser</p>
+    <h2 class="ph">Group Matches</h2>
+    <div class="grid3" id="groupsMatches"></div>
+    <h2 class="ph">Playoffs</h2>
     <div class="playoffs" id="playoffs"></div>
     <div class="champion" id="champion"></div>
-  </section>
+  </div>
+
+  <!-- ===== Points Table ===== -->
+  <div class="panel" id="panel-table" hidden>
+    <h2 class="ph">Group Standings</h2>
+    <div class="grid3" id="tables"></div>
+    <h2 class="ph">Seeds <span class="pending" id="seedStatus"></span></h2>
+    <div id="seeds"></div>
+  </div>
+
+  <!-- ===== Rules ===== -->
+  <div class="panel" id="panel-rules" hidden>
+    <div class="rules">
+      <h2 class="ph">How the tournament works</h2>
+
+      <h3>1 · The draw</h3>
+      <p>9 players were drawn at random into three groups of three:</p>
+      <ul>
+        <li><b>Group A:</b> Anderson Yamamoto, Shahed Abu Qamar, Ashwin Risbood</li>
+        <li><b>Group B:</b> Adham Badr, Francesco Fiori, Kartikeya Gokhale</li>
+        <li><b>Group C:</b> Sarat Chebrolu, Pratik Moona, Dinesh</li>
+      </ul>
+
+      <h3>2 · Group stage</h3>
+      <ul>
+        <li>Each group is a <b>round-robin</b> — every player plays the other two (3 matches per group).</li>
+        <li>Every match is <b>best of 3 games</b>. First to win 2 games wins the match.</li>
+        <li>Each game is played to a win (<b>win by 2</b> at deuce) — there are <b>no draws</b>.</li>
+        <li>Winning a match = <b>1 point</b>.</li>
+      </ul>
+
+      <h3>3 · Ranking</h3>
+      <p>Players in a group are ranked by:</p>
+      <ol>
+        <li><b>Points</b> (matches won), then</li>
+        <li><b>PF</b> — total points scored across all their games (tiebreaker).</li>
+      </ol>
+      <p>The player at the top of each group qualifies. The three group winners are seeded
+         <b>1–3</b> by the same rule (points, then PF).</p>
+
+      <h3>4 · Playoffs</h3>
+      <p>The 3 seeds play three best-of-3 matches:</p>
+      <ul>
+        <li><b>Q1</b> — Seed 1 v Seed 2. Winner goes straight to <b>Q3</b>; the loser drops to Q2 for a second chance.</li>
+        <li><b>Q2</b> — Loser of Q1 v Seed 3. Winner advances to <b>Q3</b>; the loser is eliminated.</li>
+        <li><b>Q3 (Final)</b> — Winner of Q1 v Winner of Q2. The winner is the champion.</li>
+      </ul>
+      <p class="hint">The top two seeds get a second chance — a single loss won't knock them out.
+         Seed 3 must win twice to take the title.</p>
+    </div>
+  </div>
 </main>
+
+<footer>Updated by the organiser · <a href="admin.html">organiser login</a></footer>
 
 <script src="data.js"></script>
 <script src="logic.js"></script>
 <script>
-  renderTournament(window.TOURNAMENT, { editable: false });
+  setupTabs();
+  renderAll(window.TOURNAMENT, { editable: false });
 </script>
 </body>
 </html>
