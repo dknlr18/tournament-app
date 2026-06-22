@@ -94,7 +94,10 @@
 <script src="logic.js"></script>
 <script>
   // Client-side passcode — convenience only. Real protection = repo push access.
-  const ADMIN_PASS = "topspin2026";
+  // The passcode is NOT stored here; only a salted PBKDF2-SHA256 hash of it.
+  const PASS_SALT = "KXf9UIu26x6SoJPuE3UTCw==";
+  const PASS_HASH = "24cpZjKQ7lR/E/9EMwPySJrA7u2/dpHSuhOFB3gcIDs=";
+  const PASS_ITER = 250000;
   const DRAFT_KEY = "tournament9-admin-draft-v2";
   let data;
 
@@ -130,8 +133,22 @@
     data = loadDraft();
     rerender();
   }
-  function tryEnter() {
-    if (document.getElementById("pass").value === ADMIN_PASS) {
+  function b64ToBytes(s) {
+    const bin = atob(s), a = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+    return a;
+  }
+  async function passcodeOk(input) {
+    const salt = b64ToBytes(PASS_SALT);
+    const base = await crypto.subtle.importKey(
+      "raw", new TextEncoder().encode(input), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits(
+      { name: "PBKDF2", salt, iterations: PASS_ITER, hash: "SHA-256" }, base, 256);
+    const got = btoa(String.fromCharCode(...new Uint8Array(bits)));
+    return got === PASS_HASH;
+  }
+  async function tryEnter() {
+    if (await passcodeOk(document.getElementById("pass").value)) {
       sessionStorage.setItem("tournament9-auth", "1"); unlock();
     } else { document.getElementById("err").textContent = "Wrong passcode."; }
   }
