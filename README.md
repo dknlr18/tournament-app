@@ -16,8 +16,9 @@ Players were drawn at random (Python `random.shuffle`, then dealt into A/B/C):
 
 ## Format
 
-1. **Groups** — round-robin (3 matches each). Win = 1 pt, Loss = 0 (no draws — matches
-   are played to a win). Ranked by **points**, then by **total points scored** (PF).
+1. **Groups** — round-robin (3 matches each). Every match is best-of-3 games; each game is
+   played to **11 points** (win by 2 at deuce, no draws). Match win = 1 pt, Loss = 0.
+   Ranked by **points**, then by **total points scored** (PF).
 2. **Playoffs** — the 3 group winners are seeded 1–3 (by points, then points scored), then:
    - **Q1:** Seed 1 v Seed 2 — winner goes to Q3, loser drops to Q2.
    - **Q2:** Loser of Q1 v Seed 3 — loser is eliminated.
